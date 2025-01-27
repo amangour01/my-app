@@ -1,19 +1,23 @@
-import pandas as pd
+import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
+# Load student marks
+with open('q-vercel-python.json', 'r') as f:
+    student_marks = json.load(f)
+
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
-
-# Load student marks from CSV
-df = pd.read_csv('students.csv')
 
 @app.route('/api', methods=['GET'])
 def get_marks():
     names = request.args.getlist('name')
     
-    # Find marks for requested names
-    marks = df[df['name'].isin(names)]['marks'].tolist()
+    # Retrieve marks for requested names
+    marks = [student_marks.get(name, None) for name in names]
+    
+    # Remove None values if any name not found
+    marks = [mark for mark in marks if mark is not None]
     
     return jsonify({"marks": marks})
 
